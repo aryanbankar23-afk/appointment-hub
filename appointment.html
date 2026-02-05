@@ -6,6 +6,44 @@
     <title>Manage Appointments | Appointment Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        @media (max-width: 640px) {
+    /* 1. Hide the table headers because they don't work in vertical mode */
+    thead {
+        display: none;
+    }
+
+    /* 2. Force each table row to become a standalone vertical card */
+    tr {
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 1.5rem !important;
+        margin-bottom: 1rem !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 16px !important;
+    }
+
+    /* 3. Make each data cell full width and spaced out */
+    td {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 0.5rem 0 !important;
+        border: none !important;
+        width: 100% !important;
+        text-align: right !important;
+    }
+
+    /* 4. Add labels so you know what the data is (optional but helpful) */
+    td::before {
+        content: attr(data-label); /* This grabs text from your HTML */
+        font-weight: bold;
+        color: #94a3b8; /* slate-400 */
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        text-align: left;
+    }
+}
         body {
             background: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
                         radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
