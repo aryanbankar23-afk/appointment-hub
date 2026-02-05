@@ -9,37 +9,46 @@
     <style>
         /* This targets ONLY phone screens */
         @media (max-width: 480px) {
-    /* 1. Pull the content up from the top */
+    /* 1. Force the container to be exactly the screen height */
     body {
-        padding: 10px 15px !important;
+        padding: 5px 15px !important;
+        height: 100dvh !important; /* Forces content into the visible window */
         display: flex;
         flex-direction: column;
-        justify-content: center; /* Centers content vertically */
-        min-height: 100dvh; /* Uses 'dynamic' height to fit phone bars */
+        justify-content: center;
+        overflow: hidden; /* Prevents accidental scrolling */
     }
 
-    /* 2. Minimize giant gaps between elements */
+    /* 2. Shrink the spacing between the 'Welcome' and the buttons */
     .glass-card {
-        padding: 20px !important;
-        margin-top: 10px !important;
+        padding: 15px !important;
+        margin-top: 5px !important;
+        margin-bottom: 5px !important;
     }
 
-    /* 3. Shrink the main header significantly */
+    /* 3. Significantly smaller headers to save vertical space */
     h1 {
-        font-size: 1.8rem !important; 
-        line-height: 1.1 !important;
-        margin-bottom: 0.5rem !important;
+        font-size: 1.6rem !important; 
+        margin-bottom: 4px !important;
     }
 
-    /* 4. Make description and buttons compact */
+    .text-fuchsia-500, h2 {
+        font-size: 1.4rem !important;
+        margin-bottom: 4px !important;
+    }
+
+    /* 4. Minimize the paragraph text */
     p {
-        font-size: 0.9rem !important;
-        margin-bottom: 1rem !important;
+        font-size: 0.85rem !important;
+        line-height: 1.3 !important;
+        margin-bottom: 12px !important;
     }
 
+    /* 5. Compact Buttons */
     .btn-gradient {
-        padding: 12px !important; /* Makes buttons shorter */
-        font-size: 0.9rem !important;
+        padding: 10px !important;
+        margin-top: 5px !important;
+        font-size: 0.85rem !important;
     }
 }
         body {
