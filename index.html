@@ -8,29 +8,38 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
     <style>
         /* This targets ONLY phone screens */
-@media (max-width: 480px) {
-    /* 1. Prevent the whole page from feeling cramped */
+        @media (max-width: 480px) {
+    /* 1. Pull the content up from the top */
     body {
-        padding: 0 20px !important;
+        padding: 10px 15px !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: center; /* Centers content vertically */
+        min-height: 100dvh; /* Uses 'dynamic' height to fit phone bars */
     }
 
-    /* 2. Shrink the main "Welcome" heading */
+    /* 2. Minimize giant gaps between elements */
+    .glass-card {
+        padding: 20px !important;
+        margin-top: 10px !important;
+    }
+
+    /* 3. Shrink the main header significantly */
     h1 {
-        font-size: 2rem !important; /* Makes it look normal, not huge */
-        line-height: 1.2 !important;
-        margin-top: 2rem !important;
+        font-size: 1.8rem !important; 
+        line-height: 1.1 !important;
+        margin-bottom: 0.5rem !important;
     }
 
-    /* 3. Scale down the "Appointment Hub" sub-header */
-    .text-fuchsia-500, h2 {
-        font-size: 1.75rem !important;
-    }
-
-    /* 4. Fix the description paragraph */
+    /* 4. Make description and buttons compact */
     p {
-        font-size: 0.95rem !important;
-        line-height: 1.5 !important;
-        color: #94a3b8 !important; /* slate-400 */
+        font-size: 0.9rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .btn-gradient {
+        padding: 12px !important; /* Makes buttons shorter */
+        font-size: 0.9rem !important;
     }
 }
         body {
