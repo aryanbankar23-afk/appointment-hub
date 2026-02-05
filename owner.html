@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Business Dashboard | Appointment Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                        radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                        radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            background-color: #0f172a; min-height: 100vh; color: white; font-family: 'Inter', sans-serif;
+        }
+        .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; }
+        .btn-gradient { background: linear-gradient(90deg, #312e81 0%, #c026d3 100%); transition: 0.2s; cursor: pointer; color: white; font-weight: bold; border:none; }
+        .btn-gradient:hover { transform: translateY(-2px); opacity: 0.9; }
+        .input-dark { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; padding: 12px; outline: none; width: 100%; }
+        .gallery-item { aspect-ratio: 1/1; overflow: hidden; border-radius: 16px; border: 2px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); }
+        .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="pb-10">
+
+    <div id="status-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-[200] p-4">
+        <div class="glass-card p-10 max-w-sm w-full text-center border-fuchsia-500 border-2">
+            <div class="w-20 h-20 bg-fuchsia-500/20 text-fuchsia-400 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">✓</div>
+            <h3 class="text-3xl font-black mb-3">Saved!</h3>
+            <p class="text-slate-400 mb-8">Business profile updated successfully.</p>
+            <button id="close-status" class="btn-gradient w-full py-4 rounded-2xl text-lg uppercase tracking-widest">OK</button>
+        </div>
+    </div>
+
+    <div id="offer-modal" class="hidden fixed inset-0 bg-[#0f172a]/95 z-[150] flex items-center justify-center p-6">
+        <div class="max-w-xl w-full p-8 glass-card border-t-8 border-fuchsia-600 shadow-2xl">
+            <h2 class="text-4xl font-black mb-8 text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-fuchsia-400">New Promotion</h2>
+            <div class="space-y-6">
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase mb-2 block">Offer Title</label>
+                    <input type="text" id="off-title" class="input-dark text-lg" placeholder="e.g. 10% Off">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase mb-2 block">Expiry Date</label>
+                    <input type="date" id="off-date" class="input-dark">
+                </div>
+                <div class="flex gap-4 pt-4">
+                    <button id="save-offer-btn" class="btn-gradient flex-1 py-4 rounded-2xl uppercase">Publish</button>
+                    <button id="cancel-offer" class="bg-white/10 flex-1 py-4 rounded-2xl font-bold hover:bg-white/20">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="p-6 px-10 flex justify-between items-center border-b border-white/10 relative z-[100]">
+        <h1 class="text-2xl font-black tracking-tight">Appointment Hub <span class="text-slate-500">| Owner</span></h1>
+        <div class="flex gap-4">
+            <button onclick="window.location.href='appointment.html'" class="btn-gradient px-6 py-2 rounded-xl font-bold text-sm shadow-lg">View Appointments</button>
+            <button id="logout" class="text-slate-400 hover:text-red-400 font-bold text-sm">Logout</button>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto mt-12 px-6">
+        <h2 class="text-4xl font-black mb-12">Welcome, <span id="owner-name" class="text-fuchsia-500">...</span></h2>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div class="lg:col-span-2 glass-card p-8">
+                <h3 class="text-sm font-bold text-slate-500 uppercase mb-8">Business Gallery</h3>
+                <div id="photo-gallery" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10"></div>
+
+                <form id="shop-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2"><label class="text-xs font-bold text-slate-500 mb-2 block uppercase">Shop Name</label><input type="text" id="shop-name" class="input-dark" required></div>
+                        <div class="md:col-span-2"><label class="text-xs font-bold text-slate-500 mb-2 block uppercase">Location</label><input type="text" id="location" class="input-dark" required></div>
+                        <div><label class="text-xs font-bold text-slate-500 mb-2 block uppercase">Business Email</label><input type="email" id="email" class="input-dark"></div>
+                        <div><label class="text-xs font-bold text-slate-500 mb-2 block uppercase">Contact Phone</label><input type="tel" id="phone" class="input-dark"></div>
+                    </div>
+                    <div class="p-10 border-2 border-dashed border-white/10 rounded-3xl bg-white/5 text-center">
+                        <label class="block text-sm font-bold text-slate-400 mb-4 uppercase">Upload Photos</label>
+                        <input type="file" id="photos" multiple accept="image/*" class="text-sm text-slate-500 file:btn-gradient file:border-0 file:px-8 file:py-3 file:rounded-xl cursor-pointer">
+                    </div>
+                    <button type="submit" id="save-btn" class="w-full btn-gradient py-5 rounded-3xl uppercase tracking-widest text-lg">Update Profile</button>
+                </form>
+            </div>
+
+            <div class="glass-card p-6 border-t-4 border-fuchsia-600 h-fit">
+                <h3 class="text-xl font-bold mb-8 text-white">Active Offers</h3>
+                <div id="offers-list" class="space-y-4 mb-10 text-slate-500 italic text-sm">Loading offers...</div>
+                <button id="add-offer" class="w-full border-2 border-fuchsia-500 text-fuchsia-400 py-4 rounded-2xl font-black uppercase text-xs tracking-widest">+ New Promotion</button>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { supabase } from './app.js';
+        
+        async function loadData() {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if(!user) return window.location.href = 'index.html';
+
+                const { data: profile } = await supabase.from('profiles').select('full_name').eq('id', user.id).maybeSingle();
+                document.getElementById('owner-name').innerText = profile?.full_name || 'Owner';
+
+                const { data: shop } = await supabase.from('shops').select('*').eq('owner_id', user.id).maybeSingle();
+                if(shop) {
+                    document.getElementById('shop-name').value = shop.shop_name || '';
+                    document.getElementById('location').value = shop.location || '';
+                    document.getElementById('email').value = shop.owner_email || '';
+                    document.getElementById('phone').value = shop.owner_phone || '';
+                    
+                    const gallery = document.getElementById('photo-gallery');
+                    gallery.innerHTML = (shop.images || []).map(url => `<div class="gallery-item"><img src="${url}" crossorigin="anonymous"></div>`).join('');
+
+                    const { data: offers } = await supabase.from('shop_offers').select('*').eq('shop_id', shop.id);
+                    const offerContainer = document.getElementById('offers-list');
+                    offerContainer.innerHTML = (offers && offers.length > 0) ? offers.map(o => `
+                        <div class="bg-white/5 p-4 rounded-xl border border-white/10 flex justify-between items-center">
+                            <div><p class="font-bold text-fuchsia-300 text-sm">${o.offer_title}</p>
+                            <p class="text-[10px] text-slate-500 uppercase">Exp: ${o.expiry_date}</p></div>
+                            <button onclick="window.deleteOffer('${o.id}')" class="text-slate-600 hover:text-red-400 text-xs">✕</button>
+                        </div>`).join('') : 'No active offers.';
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        document.getElementById('shop-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('save-btn');
+            btn.innerText = "SAVING..."; btn.disabled = true;
+
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                const photoFiles = document.getElementById('photos').files;
+                const { data: existing } = await supabase.from('shops').select('images').eq('owner_id', user.id).maybeSingle();
+                let allUrls = existing?.images || [];
+
+                if (photoFiles.length > 0) {
+                    for (let file of photoFiles) {
+                        const fileName = `${user.id}/${Date.now()}-${file.name}`;
+                        const { data } = await supabase.storage.from('shop-photos').upload(fileName, file);
+                        if (data) {
+                            const { data: p } = supabase.storage.from('shop-photos').getPublicUrl(fileName);
+                            allUrls.push(p.publicUrl);
+                        }
+                    }
+                }
+
+                const { error } = await supabase.from('shops').upsert({
+                    owner_id: user.id,
+                    shop_name: document.getElementById('shop-name').value,
+                    location: document.getElementById('location').value,
+                    owner_email: document.getElementById('email').value,
+                    owner_phone: document.getElementById('phone').value,
+                    images: allUrls
+                }, { onConflict: 'owner_id' }); // CRITICAL FIX
+
+                if(error) throw error;
+                document.getElementById('status-modal').classList.remove('hidden');
+            } catch (err) { alert("Save Error: " + err.message); } 
+            finally { btn.innerText = "UPDATE PROFILE"; btn.disabled = false; loadData(); }
+        };
+
+        document.getElementById('save-offer-btn').onclick = async () => {
+            const title = document.getElementById('off-title').value;
+            const date = document.getElementById('off-date').value;
+            if(!title || !date) return alert("Fill all fields.");
+
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                const { data: shop } = await supabase.from('shops').select('id').eq('owner_id', user.id).maybeSingle();
+                if(!shop) throw new Error("Update profile first to create your shop.");
+
+                const { error } = await supabase.from('shop_offers').insert([{ shop_id: shop.id, offer_title: title, expiry_date: date }]);
+                if(error) throw error;
+                document.getElementById('offer-modal').classList.add('hidden');
+                loadData();
+            } catch (err) { alert(err.message); }
+        };
+
+        window.deleteOffer = async (id) => {
+            if(confirm("Delete promotion?")) {
+                await supabase.from('shop_offers').delete().eq('id', id);
+                loadData();
+            }
+        };
+
+        document.getElementById('close-status').onclick = () => document.getElementById('status-modal').classList.add('hidden');
+        document.getElementById('add-offer').onclick = () => document.getElementById('offer-modal').classList.remove('hidden');
+        document.getElementById('cancel-offer').onclick = () => document.getElementById('offer-modal').classList.add('hidden');
+        document.getElementById('logout').onclick = async () => { await supabase.auth.signOut(); window.location.href='index.html'; };
+        loadData();
+    </script>
+</body>
+</html>

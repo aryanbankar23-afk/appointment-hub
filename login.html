@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Appointment Hub | Auth</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                        radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                        radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            background-color: #0f172a; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+        }
+        .btn-gradient { background: linear-gradient(90deg, #312e81 0%, #c026d3 100%); transition: 0.2s; cursor: pointer; }
+        .btn-gradient:hover { transform: translateY(-2px); opacity: 0.9; }
+        .hidden { display: none !important; }
+        .tab-active { border-bottom: 3px solid #c026d3; color: #1e1b4b; }
+    </style>
+</head>
+<body>
+
+    <div id="success-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-[100]">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
+            <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl font-bold">✓</div>
+            <h3 class="text-2xl font-black text-slate-900 mb-2">Account Created!</h3>
+            <p class="text-slate-500 mb-6">Success! You can now log in.</p>
+            <button id="close-modal" class="btn-gradient w-full py-3 text-white font-bold rounded-xl shadow-lg">OK, Login Now</button>
+        </div>
+    </div>
+
+    <div class="w-full max-w-[450px] bg-white rounded-3xl shadow-2xl p-8">
+        <h2 class="text-3xl font-black text-center text-slate-900 mb-6 tracking-tight">Appointment Hub</h2>
+        <div class="flex border-b border-slate-100 mb-8">
+            <button id="tab-login" class="flex-1 py-3 font-bold tab-active">Sign In</button>
+            <button id="tab-signup" class="flex-1 py-3 font-bold text-slate-400">Sign Up</button>
+        </div>
+
+        <div id="login-container">
+            <form id="login-form" class="space-y-4">
+                <input type="email" id="l-email" placeholder="Email" required class="w-full px-5 py-3 border border-slate-200 rounded-xl outline-none">
+                <input type="password" id="l-pass" placeholder="Password" required class="w-full px-5 py-3 border border-slate-200 rounded-xl outline-none">
+                <div class="grid grid-cols-2 gap-4">
+                    <button type="submit" data-role="owner" class="btn-gradient py-3 text-white font-bold text-[10px] uppercase rounded-xl">Login as Owner</button>
+                    <button type="submit" data-role="customer" class="btn-gradient py-3 text-white font-bold text-[10px] uppercase rounded-xl">Login as Customer</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="signup-container" class="hidden">
+            <form id="signup-form" class="space-y-4">
+                <input type="text" id="s-name" placeholder="Full Name" required class="w-full px-5 py-3 border border-slate-200 rounded-xl outline-none">
+                <input type="email" id="s-email" placeholder="Email Address" required class="w-full px-5 py-3 border border-slate-200 rounded-xl outline-none">
+                <input type="password" id="s-pass" placeholder="Password" required class="w-full px-5 py-3 border border-slate-200 rounded-xl outline-none">
+                <div class="grid grid-cols-2 gap-4">
+                    <button type="submit" data-role="owner" class="btn-gradient py-3 text-white font-bold text-[10px] uppercase rounded-xl">Join as Owner</button>
+                    <button type="submit" data-role="customer" class="btn-gradient py-3 text-white font-bold text-[10px] uppercase rounded-xl">Join as Customer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { supabase } from './app.js'; 
+
+        const loginBox = document.getElementById('login-container');
+        const signupBox = document.getElementById('signup-container');
+        const tLogin = document.getElementById('tab-login');
+        const tSignup = document.getElementById('tab-signup');
+        const modal = document.getElementById('success-modal');
+
+        tLogin.onclick = () => {
+            loginBox.classList.remove('hidden'); signupBox.classList.add('hidden');
+            tLogin.className = 'flex-1 py-3 font-bold tab-active';
+            tSignup.className = 'flex-1 py-3 font-bold text-slate-400';
+        };
+        tSignup.onclick = () => {
+            signupBox.classList.remove('hidden'); loginBox.classList.add('hidden');
+            tSignup.className = 'flex-1 py-3 font-bold tab-active';
+            tLogin.className = 'flex-1 py-3 font-bold text-slate-400';
+        };
+
+        document.getElementById('login-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const role = document.activeElement.dataset.role;
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: document.getElementById('l-email').value,
+                password: document.getElementById('l-pass').value
+            });
+
+            if (error) return alert(error.message);
+
+            const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single();
+            if (profile?.role !== role) {
+                alert(`Wrong Portal: You are registered as ${profile.role}`);
+                await supabase.auth.signOut();
+            } else {
+                window.location.href = role === 'owner' ? 'owner.html' : 'customer.html';
+            }
+        };
+
+        document.getElementById('signup-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const role = document.activeElement.dataset.role;
+            const { data, error } = await supabase.auth.signUp({
+                email: document.getElementById('s-email').value,
+                password: document.getElementById('s-pass').value
+            });
+
+            if (error) return alert(error.message);
+            if (data.user) {
+                await supabase.from('profiles').insert([{ id: data.user.id, full_name: document.getElementById('s-name').value, role: role }]);
+                modal.classList.remove('hidden');
+            }
+        };
+
+        document.getElementById('close-modal').onclick = () => { modal.classList.add('hidden'); tLogin.click(); };
+    </script>
+</body>
+</html>

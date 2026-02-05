@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Find Services | Appointment Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                        radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                        radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            background-color: #0f172a; min-height: 100vh; color: white; font-family: 'Inter', sans-serif;
+        }
+        .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; }
+        .btn-gradient { background: linear-gradient(90deg, #312e81 0%, #c026d3 100%); transition: 0.2s; cursor: pointer; color: white; font-weight: bold; }
+        .input-dark { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; padding: 12px; outline: none; width: 100%; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body class="pb-20">
+
+    <div id="success-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-xl flex items-center justify-center z-[200] p-4">
+        <div class="glass-card p-10 max-w-sm w-full text-center border-green-500 border-2">
+            <div class="w-20 h-20 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">✓</div>
+            <h3 class="text-2xl font-black mb-2">Appointments Saved!</h3>
+            <p class="text-slate-400 mb-8">Your bookings are now stored in the system.</p>
+            <button id="close-modal-btn" class="btn-gradient w-full py-4 rounded-2xl uppercase tracking-widest">Great!</button>
+        </div>
+    </div>
+
+    <nav class="p-6 px-10 flex justify-between items-center border-b border-white/10">
+        <h1 class="text-2xl font-black tracking-tight text-white">Appointment Hub <span class="text-slate-500">| Customer</span></h1>
+        <button onclick="window.location.href='index.html'" class="text-slate-400 font-bold">Logout</button>
+    </nav>
+
+    <main class="max-w-6xl mx-auto mt-12 px-6">
+        <div class="glass-card p-4 mb-12 flex flex-col md:flex-row gap-4">
+            <input type="text" id="search-input" class="input-dark flex-1" placeholder="Search by shop name or location...">
+            <button id="search-btn" class="btn-gradient px-10 py-3 rounded-xl uppercase text-xs tracking-widest">Search Now</button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <div class="lg:col-span-2">
+                <h2 class="text-2xl font-black mb-6 uppercase tracking-widest text-indigo-400">Available Shops</h2>
+                <div id="shop-results" class="space-y-6">
+                    <p class="text-slate-500 animate-pulse text-center p-10">Loading shops...</p>
+                </div>
+            </div>
+
+            <div class="lg:col-span-1">
+                <div class="glass-card p-6 border-t-4 border-fuchsia-500 sticky top-10">
+                    <h3 class="text-xl font-black mb-4">Your Bookings</h3>
+                    <div id="cart-list" class="space-y-4 mb-6 text-sm text-slate-400 italic">
+                        No appointments selected yet.
+                    </div>
+                    <div id="cart-actions" class="hidden">
+                        <input type="text" id="cust-name" class="input-dark mb-3" placeholder="Your Full Name">
+                        <input type="tel" id="cust-phone" class="input-dark mb-6" placeholder="Your Phone Number">
+                        <button id="confirm-all-btn" class="w-full btn-gradient py-4 rounded-2xl shadow-xl shadow-fuchsia-500/20 uppercase tracking-tighter">Confirm All Appointments</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { supabase } from './app.js';
+
+        let cart = [];
+        let confirmedBookings = []; // NEW: Stores items after they are saved to DB
+
+        async function loadShops(query = '') {
+            const resultsDiv = document.getElementById('shop-results');
+            const { data: shops, error } = await supabase.from('shops').select('*, shop_offers(*)');
+
+            if (error || !shops) {
+                resultsDiv.innerHTML = `<p class="text-red-400 p-10 text-center">Error loading shops.</p>`;
+                return;
+            }
+
+            let filtered = shops;
+            if (query) {
+                const q = query.toLowerCase();
+                filtered = shops.filter(s => s.shop_name.toLowerCase().includes(q) || s.location.toLowerCase().includes(q));
+            }
+
+            resultsDiv.innerHTML = filtered.map(shop => {
+                const offerOptions = shop.shop_offers?.map(o => `<option value="${o.offer_title}">${o.offer_title}</option>`).join('') || '';
+                return `
+                <div class="glass-card p-6 flex flex-col md:flex-row gap-6 hover:border-white/20 transition-all">
+                    <img src="${shop.images?.[0] || 'https://via.placeholder.com/300'}" class="w-full md:w-48 h-48 object-cover rounded-2xl">
+                    <div class="flex-1">
+                        <h3 class="text-2xl font-black text-white">${shop.shop_name}</h3>
+                        <p class="text-indigo-400 text-sm font-bold mb-4">📍 ${shop.location}</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <input type="date" id="date-${shop.id}" class="input-dark text-xs">
+                            <input type="time" id="time-${shop.id}" class="input-dark text-xs">
+                            <select id="offer-${shop.id}" class="input-dark text-xs md:col-span-2">
+                                <option value="">Select an Offer (Optional)</option>
+                                ${offerOptions}
+                            </select>
+                            <button onclick="window.addToCart('${shop.id}', '${shop.shop_name.replace(/'/g, "\\'")}')" class="btn-gradient md:col-span-2 py-3 rounded-xl text-xs uppercase tracking-widest">Add to Bookings</button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.addToCart = (shopId, shopName) => {
+            const date = document.getElementById(`date-${shopId}`).value;
+            const time = document.getElementById(`time-${shopId}`).value;
+            const offer = document.getElementById(`offer-${shopId}`).value;
+
+            if(!date || !time) return alert("Please select Date and Time");
+
+            cart.push({ shopId, shopName, date, time, offer });
+            updateCartUI();
+        };
+
+        window.removeFromCart = (index) => {
+            cart.splice(index, 1);
+            updateCartUI();
+        };
+
+        function updateCartUI() {
+            const list = document.getElementById('cart-list');
+            const actions = document.getElementById('cart-actions');
+            
+            // Show input box if there is a pending cart, hide if empty
+            if(cart.length > 0) actions.classList.remove('hidden');
+            
+            const allItems = [
+                ...confirmedBookings.map(item => ({ ...item, isConfirmed: true })),
+                ...cart.map(item => ({ ...item, isConfirmed: false }))
+            ];
+
+            if(allItems.length === 0) {
+                list.innerHTML = "No appointments selected yet.";
+                actions.classList.add('hidden');
+                return;
+            }
+
+            list.innerHTML = allItems.map((item, index) => `
+                <div class="p-4 rounded-xl border mb-3 relative ${item.isConfirmed ? 'bg-green-500/10 border-green-500/40' : 'bg-white/5 border-white/10'}">
+                    ${!item.isConfirmed ? `<button onclick="removeFromCart(${index})" class="absolute top-2 right-2 text-slate-500 hover:text-red-400">✕</button>` : ''}
+                    <p class="font-bold text-white">${item.shopName}</p>
+                    <p class="text-indigo-400 text-[10px] uppercase font-bold">${item.date} @ ${item.time}</p>
+                    <div class="flex justify-between items-center mt-1">
+                        <span class="text-fuchsia-400 text-[10px] italic font-black">${item.offer || ''}</span>
+                        ${item.isConfirmed ? '<span class="text-[8px] bg-green-500 text-black px-2 py-0.5 rounded-full font-bold">SAVED</span>' : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('confirm-all-btn').onclick = async () => {
+            const name = document.getElementById('cust-name').value;
+            const phone = document.getElementById('cust-phone').value;
+            if(!name || !phone) return alert("Enter name and phone");
+
+            const btn = document.getElementById('confirm-all-btn');
+            btn.innerText = "SAVING...";
+
+            const { error } = await supabase.from('appointments').insert(cart.map(item => ({
+                shop_id: item.shopId,
+                customer_name: name,
+                customer_phone: phone,
+                appointment_date: item.date,
+                appointment_time: item.time,
+                applied_offer: item.offer || "Regular Visit"
+            })));
+
+            if(!error) {
+                document.getElementById('success-modal').classList.remove('hidden');
+                confirmedBookings = [...confirmedBookings, ...cart]; // Move items to confirmed list
+                cart = []; // Clear pending cart
+                updateCartUI();
+            } else {
+                alert("Error: " + error.message);
+            }
+            btn.innerText = "Confirm All Appointments";
+        };
+
+        document.getElementById('close-modal-btn').onclick = () => document.getElementById('success-modal').classList.add('hidden');
+        document.getElementById('search-btn').onclick = () => loadShops(document.getElementById('search-input').value);
+
+        loadShops();
+    </script>
+</body>
+</html>
