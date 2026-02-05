@@ -9,63 +9,69 @@
     <style>
         /* This targets ONLY phone screens */
         @media (max-width: 480px) {
-    /* 1. Remove the 'justify-center' to stop the giant vertical gaps */
+    /* 1. Reset body to allow natural flow but tight spacing */
     body {
-        padding: 10px 15px !important;
-        display: block !important; /* Changes from flex to normal flow */
-        height: auto !important;
-        overflow-y: auto !important;
+        padding: 0px 15px !important;
+        display: block !important;
     }
 
-    /* 2. Tighten the main glass container */
+    /* 2. Make the Main Content (Headline/Desc) the STAR */
     .glass-card {
-        padding: 1.5rem 1rem !important;
-        margin: 10px auto !important;
-        width: 100% !important;
+        padding: 2.5rem 1.2rem 1.5rem 1.2rem !important; /* Extra top padding for focus */
+        margin: 20px 0 10px 0 !important;
+        min-height: 60vh; /* Takes up most of the screen height */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 
-    /* 3. Align all text properly and reduce sizes */
     h1 {
-        font-size: 1.75rem !important;
+        font-size: 2.4rem !important; /* Large, bold headline */
         line-height: 1.1 !important;
-        margin-bottom: 0.5rem !important;
-        text-align: center;
-    }
-
-    /* This is the 'EXPERIENCE THE FUTURE' text */
-    .tracking-widest {
-        font-size: 0.7rem !important;
-        margin-bottom: 0.5rem !important;
-        letter-spacing: 0.1em !important;
-    }
-
-    /* 4. Fix the description gap */
-    p {
-        font-size: 0.9rem !important;
-        line-height: 1.4 !important;
         margin-bottom: 1rem !important;
-        text-align: center;
-        padding: 0 5px !important;
     }
 
-    /* 5. Make the button fit the flow */
+    p {
+        font-size: 1.1rem !important; /* Larger, readable description */
+        line-height: 1.5 !important;
+        margin-bottom: 2rem !important;
+        color: #e2e8f0 !important; /* Brighter white for prominence */
+    }
+
+    /* 3. The Button remains prominent */
     .btn-gradient {
         width: 100% !important;
-        padding: 12px !important;
-        font-size: 0.9rem !important;
-        margin-bottom: 1.5rem !important;
+        padding: 16px !important;
+        font-size: 1rem !important;
+        margin-bottom: 0 !important;
     }
 
-    /* 6. Tighten the bottom 'Find Shops' feature list */
-    .grid, .space-y-8 {
-        gap: 1rem !important;
-        margin-top: 1rem !important;
+    /* 4. Make the Bottom Content NEGLIGIBLE */
+    /* We remove the gaps and shrink the text significantly */
+    .space-y-8, .grid {
+        gap: 0.4rem !important; 
+        margin-top: 1.5rem !important;
+        opacity: 0.6; /* Makes it look secondary/less distracting */
     }
 
-    /* Shrink the feature headers (Find Shops, Exclusive Offers) */
+    /* Feature Titles (Find Shops, etc.) - Very Small */
     h3, .text-xl {
-        font-size: 1.1rem !important;
-        margin-bottom: 2px !important;
+        font-size: 0.9rem !important;
+        margin-bottom: 0px !important;
+        font-weight: bold !important;
+    }
+
+    /* Feature Descriptions - Tiny */
+    .text-slate-400 {
+        font-size: 0.75rem !important;
+        margin-top: 0px !important;
+        display: inline !important; /* Keeps it on one line to save space */
+    }
+
+    /* Shrink the icons or circles if you have them */
+    .w-12.h-12 {
+        width: 24px !important;
+        height: 24px !important;
     }
 }
         body {
